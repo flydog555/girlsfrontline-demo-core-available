@@ -8,15 +8,19 @@
 #pragma comment( lib, "MSIMG32.LIB")
 #pragma comment(lib,"winmm.lib")
 
+//人物位置
 int x = 100;
 int y = 100;
 int* px = &x;
 int* py = &y;
-int sign = 0;  //检测键鼠状态变化标志
+//检测键鼠状态变化标志
+int sign = 0;  
 int* psign = &sign;  //将sign指针化
 //鼠标追踪
-int* pmx;//鼠标的实时x坐标
-int* pmy;//鼠标的实时y坐标
+int mx = 100;
+int my = 100;
+int* pmx = &mx;//鼠标的实时x坐标
+int* pmy = &my;//鼠标的实时y坐标
 //帧率控制
 int anime_fps = 30; // 动画播放帧率
 int start_time_anime = 0;
@@ -226,6 +230,13 @@ void playAnimation(const char* frames[], int frameCount,int a,IMAGE bgimg)  //主
         outtextxy(640, 50, killed_number_display);
         outtextxy(240, 50, lv_display);
         //outtextxy(100, 50, lv_live);
+        //加载射击线 
+        setcolor(WHITE);
+        setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
+        circle(*pmx, *pmy, 20);
+        setlinecolor(WHITE);
+        setlinestyle(PS_DASH | PS_ENDCAP_FLAT, 3);
+        line(*pmx, *pmy, *px + 170, *py + 170);
         //加载当前帧图像
         loadimage(&img, frames[i]);   
         transparentimage3(NULL, *px, *py, &img);
@@ -267,17 +278,15 @@ void character_move(IMAGE img)
 
 void keymove()
 {
-    POINT mousePos;
-    GetCursorPos(&mousePos);
-    ScreenToClient(GetHWnd(), &mousePos);
+    
     //*psign = 0;
     if (!_kbhit())
     {
-        if (mousePos.x < *px) // 检查是否鼠标在小人左侧
+        if (*pmx < *px) // 检查是否鼠标在小人左侧
         {
             *psign = 0;
         }
-        if (mousePos.x > *px) // 检查是否鼠标在小人右侧
+        if (*pmx > *px) // 检查是否鼠标在小人右侧
         {
             *psign = 10;
         }
@@ -367,4 +376,10 @@ void ui_process()
     sprintf(killed_number_display, "%d", killed_number * 100);
     sprintf(lv_display, "%d", lv);
     //sprintf(lv_live, "%d", live);
+    POINT mousePos;
+    GetCursorPos(&mousePos);
+    ScreenToClient(GetHWnd(), &mousePos);
+    *pmx = mousePos.x;
+    *pmy = mousePos.y;
 }
+
