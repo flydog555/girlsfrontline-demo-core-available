@@ -7,6 +7,7 @@
 extern void playAnimation(const char* frames[], int frameCount);
 extern void keymove();
 extern void character_move(IMAGE img);
+extern void ui_process();
 volatile int exitFlag = 0;
 
 
@@ -63,7 +64,12 @@ void Thread2(void* arg)  //线程2：键鼠控制
 	}
 }
 
-void Thread3(void* arg)  //线程3：背景绘制
+void Thread3(void* arg)  //线程3：数据处理线程
 {
+	while (true)
+	{
+		ui_process();
+		Sleep(10);
+	}
 	
 }

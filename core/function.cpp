@@ -14,12 +14,20 @@ int* px = &x;
 int* py = &y;
 int sign = 0;  //检测键鼠状态变化标志
 int* psign = &sign;  //将sign指针化
+//鼠标追踪
 int* pmx;//鼠标的实时x坐标
 int* pmy;//鼠标的实时y坐标
-int anime_fps = 30;
+//帧率控制
+int anime_fps = 30; // 动画播放帧率
 int start_time_anime = 0;
 int frame_time_anime = 0;
-//IMAGE background;
+//ui显示
+int killed_number = 10;  //击杀计数
+char killed_number_display[20];
+int lv = 1; //等级
+char lv_display[20];
+//int live = 3;
+//char lv_live[20];
 
 //动画帧加载
 const char* frames_run_left[] = {
@@ -192,12 +200,14 @@ const char* frames_wait_right[] = {
 void transparentimage3(IMAGE* dstimg, int x, int y, IMAGE* srcimg);
 void playAnimation(const char* frames[], int frameCount, int a);
 void draw_background();
+void drawProgressBar(int x, int y, int progress, int total);
 
 
 //自定义函数的定义
-void playAnimation(const char* frames[], int frameCount,int a,IMAGE bgimg)
+void playAnimation(const char* frames[], int frameCount,int a,IMAGE bgimg)  //主渲染函数
 {
     IMAGE img;
+    settextstyle(35, 0, "黑体");
     for (int i = 0; i < frameCount; i++)
     {
         cleardevice(); // 清除屏幕
@@ -208,8 +218,16 @@ void playAnimation(const char* frames[], int frameCount,int a,IMAGE bgimg)
             break;
         }
         BeginBatchDraw();
-        putimage(0, 0, &bgimg);  //加载背景
-        loadimage(&img, frames[i]); // 加载当前帧图像  
+        //加载背景
+        putimage(0, 0, &bgimg);  
+        //加载ui
+        drawProgressBar(240, 10, /*killed_number * 100 - lv * 1000*/ 500, 1000);
+        setbkmode(TRANSPARENT);
+        outtextxy(640, 50, killed_number_display);
+        outtextxy(240, 50, lv_display);
+        //outtextxy(100, 50, lv_live);
+        //加载当前帧图像
+        loadimage(&img, frames[i]);   
         transparentimage3(NULL, *px, *py, &img);
         EndBatchDraw();
         frame_time_anime = clock() - start_time_anime;
@@ -323,4 +341,30 @@ void transparentimage3(IMAGE* dstimg, int x, int y, IMAGE* srcimg)
     int h = srcimg->getheight();
     BLENDFUNCTION bf = { AC_SRC_OVER, 0, 255, AC_SRC_ALPHA };
     AlphaBlend(dstDC, x, y, w, h, srcDC, 0, 0, w, h, bf);
+}
+
+void drawProgressBar(int x, int y, int progress, int total)
+{
+    // 计算进度条的宽度  
+    int barWidth = 800; // 进度条的总宽度  
+    int barHeight = 30; // 进度条的高度  
+    int filledWidth = (progress * barWidth) / total; // 已填充的宽度  
+    // 设置进度条的背景颜色  
+    setfillcolor(WHITE);
+    //setlinecolor(WHITE);
+    //setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
+    solidrectangle(x, y, x + barWidth, y + barHeight); // 绘制背景框  
+    // 绘制已填充的进度部分
+    setfillcolor(GREEN);
+    //setlinecolor(GREEN);
+    //setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
+    solidrectangle(x, y, x + filledWidth, y + barHeight); // 绘制进度条  
+}
+
+
+void ui_process()
+{
+    sprintf(killed_number_display, "%d", killed_number * 100);
+    sprintf(lv_display, "%d", lv);
+    //sprintf(lv_live, "%d", live);
 }
