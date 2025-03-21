@@ -8,6 +8,8 @@
 #pragma comment( lib, "MSIMG32.LIB")
 #pragma comment(lib,"winmm.lib")
 
+#define BULLET_SPEED 20 // 子弹速度
+
 //人物位置
 int x = 100;
 int y = 100;
@@ -32,6 +34,21 @@ int lv = 1; //等级
 char lv_display[20];
 //int live = 3;
 //char lv_live[20];
+//子弹
+int bx = 500;
+int by = 500;
+int* bpy = &bx;//子弹的实时位置y
+int* bpx = &by;//子弹的实时位置x
+int* bullet_active = &bx;//子弹是否激活
+
+int tsign = 0;  //记录线程循环次数
+
+//子弹
+typedef struct {
+    int x, y; // 子弹位置  
+    int targetX, targetY; // 目标位置  
+    int active; // 子弹是否活跃  
+} Bullet;
 
 //动画帧加载
 const char* frames_run_left[] = {
@@ -199,16 +216,91 @@ const char* frames_wait_right[] = {
     "./resource/character/HK416/wait_right/(53).png",
     "./resource/character/HK416/wait_right/(54).png",
 };
+const char* frames_fire_left[] = {
+    "./resource/character/HK416/fire_left/ (1).png",
+    "./resource/character/HK416/fire_left/ (2).png",
+    "./resource/character/HK416/fire_left/ (3).png",
+    "./resource/character/HK416/fire_left/ (4).png",
+    "./resource/character/HK416/fire_left/ (5).png",
+    "./resource/character/HK416/fire_left/ (6).png",
+    "./resource/character/HK416/fire_left/ (7).png",
+    "./resource/character/HK416/fire_left/ (8).png",
+    "./resource/character/HK416/fire_left/ (9).png",
+    "./resource/character/HK416/fire_left/ (10).png",
+    "./resource/character/HK416/fire_left/ (11).png",
+    "./resource/character/HK416/fire_left/ (12).png",
+    "./resource/character/HK416/fire_left/ (13).png",
+    "./resource/character/HK416/fire_left/ (14).png",
+    "./resource/character/HK416/fire_left/ (15).png",
+    "./resource/character/HK416/fire_left/ (16).png",
+    "./resource/character/HK416/fire_left/ (17).png",
+    "./resource/character/HK416/fire_left/ (18).png",
+    "./resource/character/HK416/fire_left/ (19).png",
+    "./resource/character/HK416/fire_left/ (20).png",
+    "./resource/character/HK416/fire_left/ (21).png",
+    "./resource/character/HK416/fire_left/ (22).png",
+    "./resource/character/HK416/fire_left/ (23).png",
+    "./resource/character/HK416/fire_left/ (24).png",
+    "./resource/character/HK416/fire_left/ (25).png",
+    "./resource/character/HK416/fire_left/ (26).png",
+    "./resource/character/HK416/fire_left/ (27).png",
+    "./resource/character/HK416/fire_left/ (28).png",
+    "./resource/character/HK416/fire_left/ (29).png",
+    "./resource/character/HK416/fire_left/ (30).png",
+    "./resource/character/HK416/fire_left/ (31).png",
+    "./resource/character/HK416/fire_left/ (32).png",
+    "./resource/character/HK416/fire_left/ (33).png",
+    "./resource/character/HK416/fire_left/ (34).png"
+};
+const char* frames_fire_right[] = {
+    "./resource/character/HK416/fire_right/ (1).png",
+    "./resource/character/HK416/fire_right/ (2).png",
+    "./resource/character/HK416/fire_right/ (3).png",
+    "./resource/character/HK416/fire_right/ (4).png",
+    "./resource/character/HK416/fire_right/ (5).png",
+    "./resource/character/HK416/fire_right/ (6).png",
+    "./resource/character/HK416/fire_right/ (7).png",
+    "./resource/character/HK416/fire_right/ (8).png",
+    "./resource/character/HK416/fire_right/ (9).png",
+    "./resource/character/HK416/fire_right/ (10).png",
+    "./resource/character/HK416/fire_right/ (11).png",
+    "./resource/character/HK416/fire_right/ (12).png",
+    "./resource/character/HK416/fire_right/ (13).png",
+    "./resource/character/HK416/fire_right/ (14).png",
+    "./resource/character/HK416/fire_right/ (15).png",
+    "./resource/character/HK416/fire_right/ (16).png",
+    "./resource/character/HK416/fire_right/ (17).png",
+    "./resource/character/HK416/fire_right/ (18).png",
+    "./resource/character/HK416/fire_right/ (19).png",
+    "./resource/character/HK416/fire_right/ (20).png",
+    "./resource/character/HK416/fire_right/ (21).png",
+    "./resource/character/HK416/fire_right/ (22).png",
+    "./resource/character/HK416/fire_right/ (23).png",
+    "./resource/character/HK416/fire_right/ (24).png",
+    "./resource/character/HK416/fire_right/ (25).png",
+    "./resource/character/HK416/fire_right/ (26).png",
+    "./resource/character/HK416/fire_right/ (27).png",
+    "./resource/character/HK416/fire_right/ (28).png",
+    "./resource/character/HK416/fire_right/ (29).png",
+    "./resource/character/HK416/fire_right/ (30).png",
+    "./resource/character/HK416/fire_right/ (31).png",
+    "./resource/character/HK416/fire_right/ (32).png",
+    "./resource/character/HK416/fire_right/ (33).png",
+    "./resource/character/HK416/fire_right/ (34).png"
+};
 
 //自定义函数的声明
 void transparentimage3(IMAGE* dstimg, int x, int y, IMAGE* srcimg);
 void playAnimation(const char* frames[], int frameCount, int a);
-void draw_background();
 void drawProgressBar(int x, int y, int progress, int total);
+void ui_process();
+void fire();
 
+IMAGE background;
+IMAGE bulletimg;
 
 //自定义函数的定义
-void playAnimation(const char* frames[], int frameCount,int a,IMAGE bgimg)  //主渲染函数
+void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
 {
     IMAGE img;
     settextstyle(35, 0, "黑体");
@@ -218,12 +310,12 @@ void playAnimation(const char* frames[], int frameCount,int a,IMAGE bgimg)  //主
         start_time_anime = clock();
         if (*psign != a)
         {
-            //printf("break\n");
             break;
         }
         BeginBatchDraw();
         //加载背景
-        putimage(0, 0, &bgimg);  
+        
+        putimage(0, 0, &background); //
         //加载ui
         drawProgressBar(240, 10, /*killed_number * 100 - lv * 1000*/ 500, 1000);
         setbkmode(TRANSPARENT);
@@ -237,6 +329,11 @@ void playAnimation(const char* frames[], int frameCount,int a,IMAGE bgimg)  //主
         setlinecolor(WHITE);
         setlinestyle(PS_DASH | PS_ENDCAP_FLAT, 3);
         line(*pmx, *pmy, *px + 170, *py + 170);
+		//加载子弹(仅在psign为3/4时启用)
+        if (*bullet_active)
+        {
+            transparentimage3(NULL, *bpx, *bpy, &bulletimg);
+        }
         //加载当前帧图像
         loadimage(&img, frames[i]);   
         transparentimage3(NULL, *px, *py, &img);
@@ -253,68 +350,82 @@ void playAnimation(const char* frames[], int frameCount,int a,IMAGE bgimg)  //主
     }
 }
 
-void character_move(IMAGE img)
+void character_move( )
 {
     if(*psign == 0)
     {
-        playAnimation(frames_wait_left, sizeof(frames_wait_left) / sizeof(frames_wait_left[0]), *psign, img);
+        playAnimation(frames_wait_left, sizeof(frames_wait_left) / sizeof(frames_wait_left[0]), *psign);
     }
     if(*psign == 10)
     {
-        playAnimation(frames_wait_right, sizeof(frames_wait_right) / sizeof(frames_wait_right[0]), *psign, img);
+        playAnimation(frames_wait_right, sizeof(frames_wait_right) / sizeof(frames_wait_right[0]), *psign);
     }
-
     if (*psign == 1)
     {
-        
-        playAnimation(frames_run_right, sizeof(frames_run_right) / sizeof(frames_run_right[0]), *psign, img);
+        playAnimation(frames_run_right, sizeof(frames_run_right) / sizeof(frames_run_right[0]), *psign);
     }
     if (*psign == 2)
     {
-        playAnimation(frames_run_left, sizeof(frames_run_left) / sizeof(frames_run_left[0]), *psign, img);
+        playAnimation(frames_run_left, sizeof(frames_run_left) / sizeof(frames_run_left[0]), *psign);
     }
-    //playAnimation(frames_run_left, sizeof(frames_run_left) / sizeof(frames_run_left[0]), *psign);
+	if (*psign == 3)
+	{
+		playAnimation(frames_fire_left, sizeof(frames_fire_left) / sizeof(frames_fire_left[0]), *psign);
+	}
+    if (*psign == 4)
+    {
+        playAnimation(frames_fire_right, sizeof(frames_fire_right) / sizeof(frames_fire_right[0]), *psign);
+    }
 }
 
 void keymove()
 {
     
-    //*psign = 0;
+    //检测键盘状态 
     if (!_kbhit())
     {
         if (*pmx < *px) // 检查是否鼠标在小人左侧
         {
-            *psign = 0;
+            if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+            {
+                *psign = 3;
+            }
+            else
+            {
+                *psign = 0;
+            }
         }
         if (*pmx > *px) // 检查是否鼠标在小人右侧
         {
-            *psign = 10;
+            if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+            {
+                *psign = 4;
+            }
+			else
+			{
+				*psign = 10;
+			}
         }
     }
     
-     //检测键盘状态  
     if (GetAsyncKeyState('W') < 0) // 使用字符常量代替VK_W 
     {
         *py -= 10;
-        //printf("W\n");
         *psign = 1;
     }
     if (GetAsyncKeyState('S') < 0) // 使用字符常量代替VK_S  
     {
         *py += 10;
-        //printf("S\n");
         *psign = 2;
     }
     if (GetAsyncKeyState('A') < 0) // 使用字符常量代替VK_A  
     {
         *px -= 10;
-        //printf("A\n");
         *psign = 2;
     }
     if (GetAsyncKeyState('D') < 0) // 使用字符常量代替VK_D  
     {
         *px += 10;
-        //printf("D\n");
         *psign = 1;
     }
 
@@ -360,26 +471,83 @@ void drawProgressBar(int x, int y, int progress, int total)
     int filledWidth = (progress * barWidth) / total; // 已填充的宽度  
     // 设置进度条的背景颜色  
     setfillcolor(WHITE);
-    //setlinecolor(WHITE);
-    //setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
     solidrectangle(x, y, x + barWidth, y + barHeight); // 绘制背景框  
     // 绘制已填充的进度部分
     setfillcolor(GREEN);
-    //setlinecolor(GREEN);
-    //setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
     solidrectangle(x, y, x + filledWidth, y + barHeight); // 绘制进度条  
 }
 
-
 void ui_process()
 {
+    if (tsign==0)//仅第一次循环执行
+    {
+		//加载基本图片资源
+        loadimage(&background, "./resource/ui/bg.jpg", 1280, 720);
+        loadimage(&bulletimg, "./resource/other/bullet.png", 21, 21);//加载子弹图片
+    }
+    //字符转换
     sprintf(killed_number_display, "%d", killed_number * 100);
     sprintf(lv_display, "%d", lv);
     //sprintf(lv_live, "%d", live);
+	//鼠标追踪
     POINT mousePos;
     GetCursorPos(&mousePos);
     ScreenToClient(GetHWnd(), &mousePos);
     *pmx = mousePos.x;
     *pmy = mousePos.y;
+    tsign++;
+}
+
+
+
+void fire_move(Bullet* bullet, int heroX, int heroY, int targetX, int targetY) {
+    bullet->x = heroX;
+    bullet->y = heroY;
+    bullet->targetX = targetX;
+    bullet->targetY = targetY;
+    bullet->active = 1; // 激活子弹  
+}
+
+void updateBullet(Bullet* bullet) {
+    if (bullet->active) {
+        // 计算子弹的方向  
+        int dx = bullet->targetX - bullet->x;
+        int dy = bullet->targetY - bullet->y;
+        double distance = sqrt(dx * dx + dy * dy);
+
+        // 如果子弹到达目标位置，停用子弹  
+        if (distance < BULLET_SPEED) {
+            bullet->active = 0;
+            return;
+        }
+        // 更新子弹位置  
+        bullet->x += (int)(BULLET_SPEED * (dx / distance));
+        bullet->y += (int)(BULLET_SPEED * (dy / distance));
+    }
+}
+
+void fire() { 
+    Bullet bulletInstance = { 0 };
+    while (1)
+    {
+        // 检测鼠标左键发射子弹  
+        if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
+        {
+            if (!bulletInstance.active) // 只有在子弹未激活时才能发射
+            {
+                fire_move(&bulletInstance, *px+170, *py+170, *pmx, *pmy);
+            }
+        }
+        // 更新子弹位置  
+        updateBullet(&bulletInstance);
+        *bullet_active = bulletInstance.active;
+        *bpx = bulletInstance.x;
+        *bpy = bulletInstance.y;
+        if (!bulletInstance.active)
+        {
+            break;
+        }
+        Sleep(10);
+    }
 }
 
