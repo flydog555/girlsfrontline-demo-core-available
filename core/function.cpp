@@ -48,7 +48,9 @@ int* dpx = &ex;//敌人的实时位置x
 int* dpy = &ey;//敌人的实时位置y
 int* enemy_active = &ex;//敌人是否存活
 int tsign = 0;//记录线程循环次数
-int enemyflame = 0;//敌人动画帧
+int enemyflame = 0;//敌人移动动画帧
+int enemyflame_die = 0;//敌人死亡动画帧
+
 
 //子弹
 typedef struct {
@@ -429,19 +431,15 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
 		//加载敌人
         if (*enemy_active)
         {
-			loadimage(&enemyimg, golyat_move_left[enemyflame]);
+            loadimage(&enemyimg, golyat_move_left[enemyflame]);
             transparentimage3(NULL, *dpx, *dpy, &enemyimg);
         }
-        //else
-        //{
-        //    playAnimation(golyat_die_left, sizeof(golyat_die_left) / sizeof(golyat_die_left[0]), *psign);
-        //    /* *dpx = 500;
-        //     *dpy = 500;*/
-        //     //enemy enemyInstance = { 0 };
-        //    killed_number++;
-        //    break;
-        //}
-        
+        else
+        {
+            loadimage(&enemyimg, golyat_die_left[enemyflame_die]);
+            printf("%d\n", enemyflame_die);
+            transparentimage3(NULL, *dpx, *dpy, &enemyimg);
+        }
         //加载当前帧图像
         loadimage(&img, frames[i]);   
         transparentimage3(NULL, *px, *py, &img);
@@ -697,9 +695,21 @@ void updateEnemy(enemy* enemy) {
         if (*bpx >= *dpx && *bpx <= *dpx + 340 && *bpy >= *dpy && *bpy <= *dpy + 340)
         {
             enemy->active = 0;
-            //outtextxy(*dpx, *bpy, "Killed");
-            //playAnimation_enemy(golyat_die, frameCount_golyat_die);
 			killed_number++;
+			//计算敌人死亡动画
+            for (int i = 0; i < sizeof(golyat_die_left) / sizeof(golyat_die_left[0]); i++)
+            {
+                start_time_anime = clock();
+                enemyflame_die = i;
+                frame_time_anime = clock() - start_time_anime;
+                if (i != sizeof(golyat_die_left) / sizeof(golyat_die_left[0]) - 1)
+                {
+                    if (anime_fps - frame_time_anime > 0)
+                    {
+                        Sleep(anime_fps - frame_time_anime);
+                    }
+                }
+            }
         }
 
         // 更新敌人位置  
@@ -736,11 +746,6 @@ void enemy_show()
         for (int i = 0; i < sizeof(golyat_move_left) / sizeof(golyat_move_left[0]); i++)
         {
             start_time_anime = clock();
-            /*if (*psign != a)
-            {
-                break;
-            }*/
-            //加载当前帧图像
             enemyflame = i;
             frame_time_anime = clock() - start_time_anime;
             if (i != sizeof(golyat_move_left) / sizeof(golyat_move_left[0]) - 1)
@@ -748,10 +753,8 @@ void enemy_show()
                 if (anime_fps - frame_time_anime > 0)
                 {
                     Sleep(anime_fps - frame_time_anime);
-
                 }
             }
         }
     }
-    
 }
