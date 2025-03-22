@@ -50,7 +50,7 @@ int* enemy_active = &ex;//敌人是否存活
 int tsign = 0;//记录线程循环次数
 int enemyflame = 0;//敌人移动动画帧
 int enemyflame_die = 0;//敌人死亡动画帧
-
+int Isleft = 0;//敌人移动方向
 
 //子弹
 typedef struct {
@@ -330,6 +330,32 @@ const char* golyat_move_left[] = {
 	"./resource/enemy/golyat/move_left/ (23).png",
 	"./resource/enemy/golyat/move_left/ (24).png"
 };
+const char* golyat_move_right[] = {
+    "./resource/enemy/golyat/move_right/(1).png",
+    "./resource/enemy/golyat/move_right/(2).png",
+    "./resource/enemy/golyat/move_right/(3).png",
+    "./resource/enemy/golyat/move_right/(4).png",
+    "./resource/enemy/golyat/move_right/(5).png",
+    "./resource/enemy/golyat/move_right/(6).png",
+    "./resource/enemy/golyat/move_right/(7).png",
+    "./resource/enemy/golyat/move_right/(8).png",
+    "./resource/enemy/golyat/move_right/(9).png",
+    "./resource/enemy/golyat/move_right/(10).png",
+    "./resource/enemy/golyat/move_right/(11).png",
+    "./resource/enemy/golyat/move_right/(12).png",
+    "./resource/enemy/golyat/move_right/(13).png",
+    "./resource/enemy/golyat/move_right/(14).png",
+    "./resource/enemy/golyat/move_right/(15).png",
+    "./resource/enemy/golyat/move_right/(16).png",
+    "./resource/enemy/golyat/move_right/(17).png",
+    "./resource/enemy/golyat/move_right/(18).png",
+    "./resource/enemy/golyat/move_right/(19).png",
+    "./resource/enemy/golyat/move_right/(20).png",
+    "./resource/enemy/golyat/move_right/(21).png",
+    "./resource/enemy/golyat/move_right/(22).png",
+    "./resource/enemy/golyat/move_right/(23).png",
+    "./resource/enemy/golyat/move_right/(24).png"
+};
 const char* golyat_die_left[] = {
     "./resource/enemy/golyat/die_left/ (1).png",
     "./resource/enemy/golyat/die_left/ (2).png",
@@ -378,6 +404,55 @@ const char* golyat_die_left[] = {
     "./resource/enemy/golyat/die_left/ (45).png",
     "./resource/enemy/golyat/die_left/ (46).png",
     "./resource/enemy/golyat/die_left/ (47).png"
+};
+const char* golyat_die_right[] = {
+    "./resource/enemy/golyat/die_right/(1).png",
+    "./resource/enemy/golyat/die_right/(2).png",
+    "./resource/enemy/golyat/die_right/(3).png",
+    "./resource/enemy/golyat/die_right/(4).png",
+    "./resource/enemy/golyat/die_right/(5).png",
+    "./resource/enemy/golyat/die_right/(6).png",
+    "./resource/enemy/golyat/die_right/(7).png",
+    "./resource/enemy/golyat/die_right/(8).png",
+    "./resource/enemy/golyat/die_right/(9).png",
+    "./resource/enemy/golyat/die_right/(10).png",
+    "./resource/enemy/golyat/die_right/(11).png",
+    "./resource/enemy/golyat/die_right/(12).png",
+    "./resource/enemy/golyat/die_right/(13).png",
+    "./resource/enemy/golyat/die_right/(14).png",
+    "./resource/enemy/golyat/die_right/(15).png",
+    "./resource/enemy/golyat/die_right/(16).png",
+    "./resource/enemy/golyat/die_right/(17).png",
+    "./resource/enemy/golyat/die_right/(18).png",
+    "./resource/enemy/golyat/die_right/(19).png",
+    "./resource/enemy/golyat/die_right/(20).png",
+    "./resource/enemy/golyat/die_right/(21).png",
+    "./resource/enemy/golyat/die_right/(22).png",
+    "./resource/enemy/golyat/die_right/(23).png",
+    "./resource/enemy/golyat/die_right/(24).png",
+    "./resource/enemy/golyat/die_right/(25).png",
+    "./resource/enemy/golyat/die_right/(26).png",
+    "./resource/enemy/golyat/die_right/(27).png",
+    "./resource/enemy/golyat/die_right/(28).png",
+    "./resource/enemy/golyat/die_right/(29).png",
+    "./resource/enemy/golyat/die_right/(30).png",
+    "./resource/enemy/golyat/die_right/(31).png",
+    "./resource/enemy/golyat/die_right/(32).png",
+    "./resource/enemy/golyat/die_right/(33).png",
+    "./resource/enemy/golyat/die_right/(34).png",
+    "./resource/enemy/golyat/die_right/(35).png",
+    "./resource/enemy/golyat/die_right/(36).png",
+    "./resource/enemy/golyat/die_right/(37).png",
+    "./resource/enemy/golyat/die_right/(38).png",
+    "./resource/enemy/golyat/die_right/(39).png",
+    "./resource/enemy/golyat/die_right/(40).png",
+    "./resource/enemy/golyat/die_right/(41).png",
+    "./resource/enemy/golyat/die_right/(42).png",
+    "./resource/enemy/golyat/die_right/(43).png",
+    "./resource/enemy/golyat/die_right/(44).png",
+    "./resource/enemy/golyat/die_right/(45).png",
+    "./resource/enemy/golyat/die_right/(46).png",
+    "./resource/enemy/golyat/die_right/(47).png"
 };
 
 //自定义函数的声明
@@ -431,14 +506,29 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
 		//加载敌人
         if (*enemy_active)
         {
-            loadimage(&enemyimg, golyat_move_left[enemyflame]);
-            transparentimage3(NULL, *dpx, *dpy, &enemyimg);
+            if (Isleft == 1)
+            {
+                loadimage(&enemyimg, golyat_move_left[enemyflame]);
+                transparentimage3(NULL, *dpx, *dpy, &enemyimg);
+            }
+            else
+            {
+                loadimage(&enemyimg, golyat_move_right[enemyflame]);
+                transparentimage3(NULL, *dpx, *dpy, &enemyimg);
+            }
         }
         else
         {
-            loadimage(&enemyimg, golyat_die_left[enemyflame_die]);
-            printf("%d\n", enemyflame_die);
-            transparentimage3(NULL, *dpx, *dpy, &enemyimg);
+            if (Isleft == 1)
+            {
+                loadimage(&enemyimg, golyat_die_left[enemyflame_die]);
+                transparentimage3(NULL, *dpx, *dpy, &enemyimg);
+            }
+            else
+            {
+                loadimage(&enemyimg, golyat_die_right[enemyflame_die]);
+                transparentimage3(NULL, *dpx, *dpy, &enemyimg);
+            }
         }
         //加载当前帧图像
         loadimage(&img, frames[i]);   
@@ -715,6 +805,15 @@ void updateEnemy(enemy* enemy) {
         // 更新敌人位置  
         enemy->x += (int)(ENEMY_SPEED * (dx / distance));
         enemy->y += (int)(ENEMY_SPEED * (dy / distance));
+        //判断敌人向左移动还是向右移动
+        if ((int)(ENEMY_SPEED * (dx / distance)) > 0)
+        {
+			Isleft = 0;
+        }
+        else
+        {
+            Isleft = 1;
+        }
         dpx = &enemy->x;
         dpy = &enemy->y;
 		enemy_active = &enemy->active;
