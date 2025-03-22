@@ -34,7 +34,6 @@ char killed_number_display[20];
 int lv = 0; //等级
 char lv_display[20];
 int live = 3;
-char lv_live[20];
 //子弹
 int bx = 500;
 int by = 500;
@@ -468,6 +467,7 @@ void enemy_show();
 IMAGE background;
 IMAGE bulletimg;
 IMAGE enemyimg;
+IMAGE heart;
 
 //自定义函数的定义
 void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
@@ -490,7 +490,10 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
         setbkmode(TRANSPARENT);
         outtextxy(640, 50, killed_number_display);
         outtextxy(240, 50, lv_display);
-        outtextxy(100, 50, lv_live);
+        for (int i = 0; i < live; i++)
+        {
+            transparentimage3(NULL, 50+i*50,30, &heart);
+        }
         //加载射击线 
         setcolor(WHITE);
         setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
@@ -680,6 +683,7 @@ void ui_process()
 		//加载基本图片资源
         loadimage(&background, "./resource/ui/bg.jpg", 1280, 720);
         loadimage(&bulletimg, "./resource/other/bullet.png", 21, 21);//加载子弹图片
+		loadimage(&heart, "./resource/ui/heart.png", 48, 48);//加载心图片
     }
     if (killed_number * 100 - lv * 1000 >= 1000)
     {
@@ -688,7 +692,6 @@ void ui_process()
     //字符转换
     sprintf(killed_number_display, "%d", killed_number * 100);
     sprintf(lv_display, "%d", lv);
-    sprintf(lv_live, "%d", live);
 	//鼠标追踪
     POINT mousePos;
     GetCursorPos(&mousePos);
