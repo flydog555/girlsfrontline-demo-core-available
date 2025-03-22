@@ -9,6 +9,7 @@
 #pragma comment(lib,"winmm.lib")
 
 #define BULLET_SPEED 20 // 子弹速度
+#define ENEMY_SPEED 2 // 敌人速度
 
 //人物位置
 int x = 100;
@@ -28,27 +29,40 @@ int anime_fps = 30; // 动画播放帧率
 int start_time_anime = 0;
 int frame_time_anime = 0;
 //ui显示
-int killed_number = 10;  //击杀计数
+int killed_number = 0;  //击杀计数
 char killed_number_display[20];
-int lv = 1; //等级
+int lv = 0; //等级
 char lv_display[20];
-//int live = 3;
-//char lv_live[20];
+int live = 3;
+char lv_live[20];
 //子弹
 int bx = 500;
 int by = 500;
 int* bpy = &bx;//子弹的实时位置y
 int* bpx = &by;//子弹的实时位置x
 int* bullet_active = &bx;//子弹是否激活
-
-int tsign = 0;  //记录线程循环次数
+//敌人
+int ex = 0;
+int ey = 0;
+int* dpx = &ex;//敌人的实时位置x
+int* dpy = &ey;//敌人的实时位置y
+int* enemy_active = &ex;//敌人是否存活
+int tsign = 0;//记录线程循环次数
+int enemyflame = 0;//敌人动画帧
 
 //子弹
 typedef struct {
-    int x, y; // 子弹位置  
-    int targetX, targetY; // 目标位置  
-    int active; // 子弹是否活跃  
+    int x, y;//子弹位置  
+    int targetX, targetY;//目标位置  
+    int active;//子弹是否活跃  
 } Bullet;
+
+//敌人
+typedef struct {
+    int x, y; // 敌人位置  
+    int targetX, targetY; // 目标位置  
+    int active; // 敌人是否活跃  
+} enemy;
 
 //动画帧加载
 const char* frames_run_left[] = {
@@ -288,6 +302,81 @@ const char* frames_fire_right[] = {
     "./resource/character/HK416/fire_right/ (33).png",
     "./resource/character/HK416/fire_right/ (34).png"
 };
+const char* golyat_move_left[] = {
+    "./resource/enemy/golyat/move_left/ (1).png",
+	"./resource/enemy/golyat/move_left/ (2).png",
+	"./resource/enemy/golyat/move_left/ (3).png",
+	"./resource/enemy/golyat/move_left/ (4).png",
+	"./resource/enemy/golyat/move_left/ (5).png",
+	"./resource/enemy/golyat/move_left/ (6).png",
+	"./resource/enemy/golyat/move_left/ (7).png",
+	"./resource/enemy/golyat/move_left/ (8).png",
+	"./resource/enemy/golyat/move_left/ (9).png",
+	"./resource/enemy/golyat/move_left/ (10).png",
+	"./resource/enemy/golyat/move_left/ (11).png",
+	"./resource/enemy/golyat/move_left/ (12).png",
+	"./resource/enemy/golyat/move_left/ (13).png",
+	"./resource/enemy/golyat/move_left/ (14).png",
+	"./resource/enemy/golyat/move_left/ (15).png",
+	"./resource/enemy/golyat/move_left/ (16).png",
+	"./resource/enemy/golyat/move_left/ (17).png",
+	"./resource/enemy/golyat/move_left/ (18).png",
+	"./resource/enemy/golyat/move_left/ (19).png",
+	"./resource/enemy/golyat/move_left/ (20).png",
+	"./resource/enemy/golyat/move_left/ (21).png",
+	"./resource/enemy/golyat/move_left/ (22).png",
+	"./resource/enemy/golyat/move_left/ (23).png",
+	"./resource/enemy/golyat/move_left/ (24).png"
+};
+const char* golyat_die_left[] = {
+    "./resource/enemy/golyat/die_left/ (1).png",
+    "./resource/enemy/golyat/die_left/ (2).png",
+    "./resource/enemy/golyat/die_left/ (3).png",
+    "./resource/enemy/golyat/die_left/ (4).png",
+    "./resource/enemy/golyat/die_left/ (5).png",
+    "./resource/enemy/golyat/die_left/ (6).png",
+    "./resource/enemy/golyat/die_left/ (7).png",
+    "./resource/enemy/golyat/die_left/ (8).png",
+    "./resource/enemy/golyat/die_left/ (9).png",
+    "./resource/enemy/golyat/die_left/ (10).png",
+    "./resource/enemy/golyat/die_left/ (11).png",
+    "./resource/enemy/golyat/die_left/ (12).png",
+    "./resource/enemy/golyat/die_left/ (13).png",
+    "./resource/enemy/golyat/die_left/ (14).png",
+    "./resource/enemy/golyat/die_left/ (15).png",
+    "./resource/enemy/golyat/die_left/ (16).png",
+    "./resource/enemy/golyat/die_left/ (17).png",
+    "./resource/enemy/golyat/die_left/ (18).png",
+    "./resource/enemy/golyat/die_left/ (19).png",
+    "./resource/enemy/golyat/die_left/ (20).png",
+    "./resource/enemy/golyat/die_left/ (21).png",
+    "./resource/enemy/golyat/die_left/ (22).png",
+    "./resource/enemy/golyat/die_left/ (23).png",
+    "./resource/enemy/golyat/die_left/ (24).png",
+    "./resource/enemy/golyat/die_left/ (25).png",
+    "./resource/enemy/golyat/die_left/ (26).png",
+    "./resource/enemy/golyat/die_left/ (27).png",
+    "./resource/enemy/golyat/die_left/ (28).png",
+    "./resource/enemy/golyat/die_left/ (29).png",
+    "./resource/enemy/golyat/die_left/ (30).png",
+    "./resource/enemy/golyat/die_left/ (31).png",
+    "./resource/enemy/golyat/die_left/ (32).png",
+    "./resource/enemy/golyat/die_left/ (33).png",
+    "./resource/enemy/golyat/die_left/ (34).png",
+    "./resource/enemy/golyat/die_left/ (35).png",
+    "./resource/enemy/golyat/die_left/ (36).png",
+    "./resource/enemy/golyat/die_left/ (37).png",
+    "./resource/enemy/golyat/die_left/ (38).png",
+    "./resource/enemy/golyat/die_left/ (39).png",
+    "./resource/enemy/golyat/die_left/ (40).png",
+    "./resource/enemy/golyat/die_left/ (41).png",
+    "./resource/enemy/golyat/die_left/ (42).png",
+    "./resource/enemy/golyat/die_left/ (43).png",
+    "./resource/enemy/golyat/die_left/ (44).png",
+    "./resource/enemy/golyat/die_left/ (45).png",
+    "./resource/enemy/golyat/die_left/ (46).png",
+    "./resource/enemy/golyat/die_left/ (47).png"
+};
 
 //自定义函数的声明
 void transparentimage3(IMAGE* dstimg, int x, int y, IMAGE* srcimg);
@@ -295,9 +384,13 @@ void playAnimation(const char* frames[], int frameCount, int a);
 void drawProgressBar(int x, int y, int progress, int total);
 void ui_process();
 void fire();
+void enemy_data();
+void enemy_show();
+
 
 IMAGE background;
 IMAGE bulletimg;
+IMAGE enemyimg;
 
 //自定义函数的定义
 void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
@@ -314,14 +407,13 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
         }
         BeginBatchDraw();
         //加载背景
-        
-        putimage(0, 0, &background); //
+        putimage(0, 0, &background);
         //加载ui
-        drawProgressBar(240, 10, /*killed_number * 100 - lv * 1000*/ 500, 1000);
+        drawProgressBar(240, 10, killed_number * 100 - lv * 1000, 1000);
         setbkmode(TRANSPARENT);
         outtextxy(640, 50, killed_number_display);
         outtextxy(240, 50, lv_display);
-        //outtextxy(100, 50, lv_live);
+        outtextxy(100, 50, lv_live);
         //加载射击线 
         setcolor(WHITE);
         setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
@@ -329,11 +421,27 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
         setlinecolor(WHITE);
         setlinestyle(PS_DASH | PS_ENDCAP_FLAT, 3);
         line(*pmx, *pmy, *px + 170, *py + 170);
-		//加载子弹(仅在psign为3/4时启用)
+		//加载子弹
         if (*bullet_active)
         {
             transparentimage3(NULL, *bpx, *bpy, &bulletimg);
         }
+		//加载敌人
+        if (*enemy_active)
+        {
+			loadimage(&enemyimg, golyat_move_left[enemyflame]);
+            transparentimage3(NULL, *dpx, *dpy, &enemyimg);
+        }
+        //else
+        //{
+        //    playAnimation(golyat_die_left, sizeof(golyat_die_left) / sizeof(golyat_die_left[0]), *psign);
+        //    /* *dpx = 500;
+        //     *dpy = 500;*/
+        //     //enemy enemyInstance = { 0 };
+        //    killed_number++;
+        //    break;
+        //}
+        
         //加载当前帧图像
         loadimage(&img, frames[i]);   
         transparentimage3(NULL, *px, *py, &img);
@@ -485,10 +593,14 @@ void ui_process()
         loadimage(&background, "./resource/ui/bg.jpg", 1280, 720);
         loadimage(&bulletimg, "./resource/other/bullet.png", 21, 21);//加载子弹图片
     }
+    if (killed_number * 100 - lv * 1000 >= 1000)
+    {
+        lv++;
+    }
     //字符转换
     sprintf(killed_number_display, "%d", killed_number * 100);
     sprintf(lv_display, "%d", lv);
-    //sprintf(lv_live, "%d", live);
+    sprintf(lv_live, "%d", live);
 	//鼠标追踪
     POINT mousePos;
     GetCursorPos(&mousePos);
@@ -498,7 +610,7 @@ void ui_process()
     tsign++;
 }
 
-
+//子弹开火
 
 void fire_move(Bullet* bullet, int heroX, int heroY, int targetX, int targetY) {
     bullet->x = heroX;
@@ -517,6 +629,11 @@ void updateBullet(Bullet* bullet) {
 
         // 如果子弹到达目标位置，停用子弹  
         if (distance < BULLET_SPEED) {
+            bullet->active = 0;
+            return;
+        }
+        if (dx == *dpx && dy == *dpy)  //还需修改
+        {
             bullet->active = 0;
             return;
         }
@@ -551,3 +668,90 @@ void fire() {
     }
 }
 
+//敌人刷新及寻路
+void enemy_move(enemy* enemy, int heroX, int heroY, int targetX, int targetY) 
+{
+    enemy->x = heroX;
+    enemy->y = heroY;
+    enemy->targetX = targetX;
+    enemy->targetY = targetY;
+    enemy->active = 1; // 敌人是否存活  
+}
+
+void updateEnemy(enemy* enemy) {
+    if (enemy->active) {
+        // 计算敌人寻路的方向  
+        int dx = enemy->targetX - enemy->x;
+        int dy = enemy->targetY - enemy->y;
+        double distance = sqrt(dx * dx + dy * dy);
+
+        // 如果敌人接触到人物  
+        if (distance < ENEMY_SPEED) {
+            enemy->active = 0;
+            //printf("Killed\n");
+            live--;
+            return;
+        }
+
+        //子弹打中敌人后
+        if (*bpx >= *dpx && *bpx <= *dpx + 340 && *bpy >= *dpy && *bpy <= *dpy + 340)
+        {
+            enemy->active = 0;
+            //outtextxy(*dpx, *bpy, "Killed");
+            //playAnimation_enemy(golyat_die, frameCount_golyat_die);
+			killed_number++;
+        }
+
+        // 更新敌人位置  
+        enemy->x += (int)(ENEMY_SPEED * (dx / distance));
+        enemy->y += (int)(ENEMY_SPEED * (dy / distance));
+        dpx = &enemy->x;
+        dpy = &enemy->y;
+		enemy_active = &enemy->active;
+    }
+}
+
+
+void enemy_data()
+{
+    enemy enemyInstance = { 0 };
+    *dpx = rand() % (1180 - 100 + 1) + 100;
+    *dpy = rand() % (621) + 100;
+    while (1)
+    {
+        enemy_move(&enemyInstance, *dpx, *dpy, *px, *py);
+        updateEnemy(&enemyInstance);
+        if (!enemyInstance.active)
+        {
+            break;
+        }
+        Sleep(20);
+    }
+}
+
+void enemy_show()
+{
+    if (enemy_active)
+    {
+        for (int i = 0; i < sizeof(golyat_move_left) / sizeof(golyat_move_left[0]); i++)
+        {
+            start_time_anime = clock();
+            /*if (*psign != a)
+            {
+                break;
+            }*/
+            //加载当前帧图像
+            enemyflame = i;
+            frame_time_anime = clock() - start_time_anime;
+            if (i != sizeof(golyat_move_left) / sizeof(golyat_move_left[0]) - 1)
+            {
+                if (anime_fps - frame_time_anime > 0)
+                {
+                    Sleep(anime_fps - frame_time_anime);
+
+                }
+            }
+        }
+    }
+    
+}
