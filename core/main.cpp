@@ -4,6 +4,7 @@
 #include <graphics.h>  
 #include <conio.h>  
 
+
 extern void keymove();
 extern void character_move();
 extern void ui_process();
@@ -53,6 +54,8 @@ int main()
 	WaitForSingleObject(h5, INFINITE);//等待线程5结束
 	WaitForSingleObject(h6, INFINITE);//等待线程6结束
 
+	cleardevice();
+	printf("You are killed");
 	closegraph();
 	printf("主线程结束\n");
 	return 0;
@@ -77,7 +80,7 @@ void Thread2(void* arg)  //线程2：键鼠控制
 
 void Thread3(void* arg)  //线程3：数据处理线程
 {
-	while (true)
+	while (!exitFlag)
 	{
 		ui_process();
 		Sleep(10);
@@ -86,7 +89,7 @@ void Thread3(void* arg)  //线程3：数据处理线程
 
 void Thread4(void* arg)  //线程4：子弹数据处理线程
 {
-	while (true)
+	while (!exitFlag)
 	{
 		fire();
 	}
@@ -94,7 +97,7 @@ void Thread4(void* arg)  //线程4：子弹数据处理线程
 
 void Thread5(void* arg)  //线程5：敌人数据处理线程
 {
-	while (true)
+	while (!exitFlag)
 	{
 		enemy_data();
 	}
@@ -102,7 +105,7 @@ void Thread5(void* arg)  //线程5：敌人数据处理线程
 
 void Thread6(void* arg)  //线程6：敌人动画处理线程
 {
-	while (true)
+	while (!exitFlag)
 	{
 		enemy_show();
 	}

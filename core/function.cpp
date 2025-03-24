@@ -5,6 +5,7 @@
 #include <stdio.h>  
 #include <math.h>
 #include <time.h>
+#include "main.h"
 #pragma comment( lib, "MSIMG32.LIB")
 #pragma comment(lib,"winmm.lib")
 
@@ -627,7 +628,7 @@ IMAGE heart;
 void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
 {
     IMAGE img;
-    settextstyle(35, 0, "黑体");
+    settextstyle(25, 0, "黑体");
     for (int i = 0; i < frameCount; i++)
     {
         cleardevice(); // 清除屏幕
@@ -642,11 +643,12 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
         //加载ui
         drawProgressBar(240, 10, killed_number * 100 - lv * 1000, 1000);
         setbkmode(TRANSPARENT);
-        outtextxy(640, 50, killed_number_display);
-        outtextxy(240, 50, lv_display);
+        outtextxy(1020, 50, killed_number_display);
+        outtextxy(250, 11, "Lv.");
+        outtextxy(285, 11, lv_display);
         for (int i = 0; i < live; i++)
         {
-            transparentimage3(NULL, 50+i*50,30, &heart);
+            transparentimage3(NULL, 240+i*30,40, &heart);
         }
         //加载射击线 
         setcolor(WHITE);
@@ -833,14 +835,17 @@ void drawProgressBar(int x, int y, int progress, int total)
 {
     // 计算进度条的宽度  
     int barWidth = 800; // 进度条的总宽度  
-    int barHeight = 30; // 进度条的高度  
+    int barHeight = 25; // 进度条的高度  
     int filledWidth = (progress * barWidth) / total; // 已填充的宽度  
-    // 设置进度条的背景颜色  
-    setfillcolor(WHITE);
-    solidrectangle(x, y, x + barWidth, y + barHeight); // 绘制背景框  
+    
     // 绘制已填充的进度部分
-    setfillcolor(GREEN);
-    solidrectangle(x, y, x + filledWidth, y + barHeight); // 绘制进度条  
+    setfillcolor(RGB(13,140,251));
+    solidrectangle(x, y, x + filledWidth, y + barHeight); // 绘制进度条 
+    // 设置进度条的背景颜色  
+    setlinecolor(WHITE);
+    //setfillcolor();
+    setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
+    rectangle(x, y, x + barWidth, y + barHeight); // 绘制背景框  
 }
 
 void ui_process()
@@ -850,7 +855,7 @@ void ui_process()
 		//加载基本图片资源
         loadimage(&background, "./resource/ui/bg.jpg", 1280, 720);
         loadimage(&bulletimg, "./resource/other/bullet.png", 21, 21);//加载子弹图片
-		loadimage(&heart, "./resource/ui/heart.png", 48, 48);//加载心图片
+		loadimage(&heart, "./resource/ui/heart.png", 32, 32);//加载心图片
     }
     if (killed_number * 100 - lv * 1000 >= 1000)
     {
@@ -904,7 +909,7 @@ void updateBullet(Bullet* bullet) {
 
 void fire() { 
     Bullet bulletInstance = { 0 };
-    while (1)
+    while (!exitFlag)
     {
         // 检测鼠标左键发射子弹  
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
@@ -962,6 +967,10 @@ void updateEnemy(enemy* enemy) {
                 }
             }
             live--;
+            if (live == 0)
+            {
+               exitFlag = 1;
+            }
             return;
         }
 
@@ -1020,7 +1029,7 @@ void enemy_data()
     enemyInstance.health = 50;
     *dpx = rand() % (1180 - 100 + 1) + 100;
     *dpy = rand() % (621) + 100;
-    while (1)
+    while (!exitFlag)
     {
         enemy_move(&enemyInstance, *dpx, *dpy, *px, *py);
         updateEnemy(&enemyInstance);
