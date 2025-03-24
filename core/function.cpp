@@ -63,6 +63,7 @@ typedef struct {
     int x, y; // 敌人位置  
     int targetX, targetY; // 目标位置  
     int active; // 敌人是否活跃  
+    int health ;
 } enemy;
 
 //动画帧加载
@@ -723,7 +724,8 @@ void updateBullet(Bullet* bullet) {
             bullet->active = 0;
             return;
         }
-        if (dx == *dpx && dy == *dpy)  //还需修改
+
+        if (*bullet_active==0)  //还需修改
         {
             bullet->active = 0;
             return;
@@ -787,19 +789,28 @@ void updateEnemy(enemy* enemy) {
         //子弹打中敌人后
         if (*bpx >= *dpx && *bpx <= *dpx + 340 && *bpy >= *dpy && *bpy <= *dpy + 340)
         {
-            enemy->active = 0;
-			killed_number++;
+            
+            printf("%d\n",enemy->health);
+            enemy->health -=10;
+            *bullet_active = 0;
+		    //outtextxy(*dpx+100, *dpy+100, "10");
+            //Sleep(1000);
 			//计算敌人死亡动画
-            for (int i = 0; i < sizeof(golyat_die_left) / sizeof(golyat_die_left[0]); i++)
+            if (enemy->health == 0)
             {
-                start_time_anime = clock();
-                enemyflame_die = i;
-                frame_time_anime = clock() - start_time_anime;
-                if (i != sizeof(golyat_die_left) / sizeof(golyat_die_left[0]) - 1)
+                enemy->active = 0;
+                killed_number++;
+                for (int i = 0; i < sizeof(golyat_die_left) / sizeof(golyat_die_left[0]); i++)
                 {
-                    if (anime_fps - frame_time_anime > 0)
+                    start_time_anime = clock();
+                    enemyflame_die = i;
+                    frame_time_anime = clock() - start_time_anime;
+                    if (i != sizeof(golyat_die_left) / sizeof(golyat_die_left[0]) - 1)
                     {
-                        Sleep(anime_fps - frame_time_anime);
+                        if (anime_fps - frame_time_anime > 0)
+                        {
+                            Sleep(anime_fps - frame_time_anime);
+                        }
                     }
                 }
             }
@@ -827,6 +838,7 @@ void updateEnemy(enemy* enemy) {
 void enemy_data()
 {
     enemy enemyInstance = { 0 };
+    enemyInstance.health = 50;
     *dpx = rand() % (1180 - 100 + 1) + 100;
     *dpy = rand() % (621) + 100;
     while (1)
