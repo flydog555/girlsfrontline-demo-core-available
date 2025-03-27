@@ -9,8 +9,10 @@ extern void keymove();
 extern void character_move();
 extern void ui_process();
 extern void fire();
+extern void fire_rander();
 extern void enemy_data();
 extern void enemy_show();
+
 
 volatile int exitFlag = 0;
 
@@ -22,9 +24,10 @@ void Thread3(void*);
 void Thread4(void*);
 void Thread5(void*);
 void Thread6(void*);
+void Thread7(void*);
 
 /* 线程句柄 */
-HANDLE h1, h2, h3, h4, h5, h6;
+HANDLE h1, h2, h3, h4, h5, h6, h7;
 
 /* 线程共享内存 */
 volatile int i = 0;
@@ -46,6 +49,7 @@ int main()
 	h4 = (HANDLE)_beginthread(Thread4, 0, NULL);//线程4
 	h5 = (HANDLE)_beginthread(Thread5, 0, NULL);//线程5
 	h6 = (HANDLE)_beginthread(Thread6, 0, NULL);//线程6
+	h7 = (HANDLE)_beginthread(Thread7, 0, NULL);//线程7
 
 	WaitForSingleObject(h1, INFINITE);//等待线程1结束
 	WaitForSingleObject(h2, INFINITE);//等待线程2结束
@@ -53,6 +57,7 @@ int main()
 	WaitForSingleObject(h4, INFINITE);//等待线程4结束
 	WaitForSingleObject(h5, INFINITE);//等待线程5结束
 	WaitForSingleObject(h6, INFINITE);//等待线程6结束
+	WaitForSingleObject(h7, INFINITE);//等待线程7结束
 
 	cleardevice();
 	printf("You are killed");
@@ -108,7 +113,15 @@ void Thread4(void* arg)  //线程4：子弹数据处理线程
 	}
 }
 
-void Thread5(void* arg)  //线程5：敌人数据处理线程
+void Thread5(void* arg)
+{
+	while (!exitFlag)
+	{
+		fire_rander();
+	}
+}
+
+void Thread6(void* arg)  //线程5：敌人数据处理线程
 {
 	while (!exitFlag)
 	{
@@ -116,7 +129,7 @@ void Thread5(void* arg)  //线程5：敌人数据处理线程
 	}
 }
 
-void Thread6(void* arg)  //线程6：敌人动画处理线程
+void Thread7(void* arg)  //线程6：敌人动画处理线程
 {
 	while (!exitFlag)
 	{

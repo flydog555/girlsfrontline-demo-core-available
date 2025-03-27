@@ -11,6 +11,7 @@
 
 #define BULLET_SPEED 20 // 子弹速度
 #define ENEMY_SPEED 2 // 敌人速度
+#define MAX_BULLETS 10
 
 //人物位置
 int x = 640-170;
@@ -61,6 +62,8 @@ typedef struct {
     int targetX, targetY;//目标位置  
     int active;//子弹是否活跃  
 } Bullet;
+
+Bullet bullets[MAX_BULLETS];  //子弹数组
 
 //敌人
 typedef struct {
@@ -660,9 +663,13 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
         setlinestyle(PS_DASH | PS_ENDCAP_FLAT, 3);
         line(*pmx, *pmy, *px + 170, *py + 170);
 		//加载子弹
-        if (*bullet_active)
+        for (int i = 0; i < MAX_BULLETS; i++)
         {
-            transparentimage3(NULL, *bpx, *bpy, &bulletimg);
+            if (bullets[i].active)
+            {
+                transparentimage3(NULL, bullets[i].x, bullets[i].y, &bulletimg);
+            }
+
         }
 		//加载敌人
         if (*enemy_active==1)
@@ -912,8 +919,13 @@ void updateBullet(Bullet* bullet) {
             bullet->active = 0;
             return;
         }
+        
+        for (int i = 0; i < MAX_BULLETS; i++)
+        {
+            
+        }
 
-        if (*bullet_active==0)  
+        if (*bullet_active==0)   /////////////////////
         {
             bullet->active = 0;
             return;
@@ -925,28 +937,44 @@ void updateBullet(Bullet* bullet) {
 }
 
 void fire() { 
-    Bullet bulletInstance = { 0 };
+    //Bullet bulletInstance = { 0 };
     while (!exitFlag)
     {
         // 检测鼠标左键发射子弹  
         if (GetAsyncKeyState(VK_LBUTTON) & 0x8000)
         {
-            if (!bulletInstance.active) // 只有在子弹未激活时才能发射
+            for (int i = 0; i < MAX_BULLETS; i++)
             {
-                fire_move(&bulletInstance, *px+170, *py+170, *pmx, *pmy);
+                if (!bullets[i].active) // 只有在子弹未激活时才能发射
+                {
+                    fire_move(&bullets[i], *px + 170, *py + 170, *pmx, *pmy);
+                    break;
+                }
             }
         }
-        // 更新子弹位置  
-        updateBullet(&bulletInstance);
-        *bullet_active = bulletInstance.active;
+        // 更新子弹位置
+        
+        
+        /**bullet_active = bulletInstance.active;
         *bpx = bulletInstance.x;
-        *bpy = bulletInstance.y;
-        if (!bulletInstance.active)
+        *bpy = bulletInstance.y;*/
+
+        /*if (!bulletInstance.active)
         {
             break;
-        }
-        Sleep(10);
+        }*/
+        Sleep(200);
     }
+}
+
+void fire_rander()
+{
+    for (int i = 0; i < MAX_BULLETS; i++)
+    {
+        printf("%d\n", i);
+        updateBullet(&bullets[i]); 
+    }
+    Sleep(1);
 }
 
 //敌人刷新及寻路
@@ -965,11 +993,10 @@ void updateEnemy(enemy* enemy) {
         int dx = enemy->targetX - enemy->x;
         int dy = enemy->targetY - enemy->y;
         double distance = sqrt(dx * dx + dy * dy);
-
         // 如果敌人接触到人物  
         if (distance-100 < ENEMY_SPEED) {
             enemy->active = 2;    /////////////////////
-            //printf("Killed\n");
+            
             for (int i = 0; i < sizeof(golyat_attack_left) / sizeof(golyat_attack_left[0]); i++)
             {
                 start_time_anime = clock();
@@ -991,31 +1018,30 @@ void updateEnemy(enemy* enemy) {
             return;
         }
 
-        //子弹打中敌人后
-        if (*bpx >= *dpx && *bpx <= *dpx + 340 && *bpy >= *dpy && *bpy <= *dpy + 340)
+
+        for (int i = 0; i < MAX_BULLETS; i++)
         {
-            
-            printf("%d\n",enemy->health);
-            enemy->health -=10;
-            *bullet_active = 0;
-            hit = 1;
-		    //outtextxy(*dpx+100, *dpy+100, "10");
-            //Sleep(1000);
-			//计算敌人死亡动画
-            if (enemy->health == 0)
+            if (bullets[i].x >= *dpx && bullets[i].x <= *dpx + 340 && bullets[i].y >= *dpy && bullets[i].y <= *dpy + 340)
             {
-                enemy->active = 0;
-                killed_number++;
-                for (int i = 0; i < sizeof(golyat_die_left) / sizeof(golyat_die_left[0]); i++)
+                enemy->health -= 10;
+                bullets[i].active = 0;
+                hit = 1;
+                //计算敌人死亡动画
+                if (enemy->health == 0)
                 {
-                    start_time_anime = clock();
-                    enemyflame_die = i;
-                    frame_time_anime = clock() - start_time_anime;
-                    if (i != sizeof(golyat_die_left) / sizeof(golyat_die_left[0]) - 1)
+                    enemy->active = 0;
+                    killed_number++;
+                    for (int i = 0; i < sizeof(golyat_die_left) / sizeof(golyat_die_left[0]); i++)
                     {
-                        if (anime_fps - frame_time_anime > 0)
+                        start_time_anime = clock();
+                        enemyflame_die = i;
+                        frame_time_anime = clock() - start_time_anime;
+                        if (i != sizeof(golyat_die_left) / sizeof(golyat_die_left[0]) - 1)
                         {
-                            Sleep(anime_fps - frame_time_anime);
+                            if (anime_fps - frame_time_anime > 0)
+                            {
+                                Sleep(anime_fps - frame_time_anime);
+                            }
                         }
                     }
                 }
