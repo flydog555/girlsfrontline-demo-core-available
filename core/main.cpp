@@ -68,6 +68,19 @@ void Thread1(void* arg)  //线程1：渲染线程
 	{
 		character_move();
 	}
+	////窗口显示网格表
+	//while (1)
+	//{
+	//	for (int i = 0; i <= 36; i++)
+	//	{
+	//		line(0, 20 * i, 1280, 20 * i);
+	//	}
+	//	for (int i = 0; i <= 64; i++)
+	//	{
+	//		line(20 * i, 0, 20 * i, 720);
+	//	}
+	//}
+	
 }
 
 void Thread2(void* arg)  //线程2：键鼠控制

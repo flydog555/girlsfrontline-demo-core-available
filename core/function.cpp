@@ -13,8 +13,8 @@
 #define ENEMY_SPEED 2 // 敌人速度
 
 //人物位置
-int x = 100;
-int y = 100;
+int x = 640-170;
+int y = 360-170;
 int* px = &x;
 int* py = &y;
 //检测键鼠状态变化标志
@@ -1045,8 +1045,30 @@ void enemy_data()
 {
     enemy enemyInstance = { 0 };
     enemyInstance.health = 50;
-    *dpx = rand() % (1180 - 100 + 1) + 100;
-    *dpy = rand() % (621) + 100;
+    //敌人生成位置随机
+    int randomx1=rand()%101;
+    int randomx2=rand()%101+840;
+    int randomchoosex=rand()%2;
+    if (randomchoosex == 0)
+    {
+        *dpx = randomx1;
+    }
+    else
+    {
+        *dpx = randomx2;
+    }
+    int randomy1 = rand() % 101;
+    int randomy2 = rand() % 101 + 280;
+    int randomchoosey = rand() % 2;
+    if (randomchoosey == 0)
+    {
+        *dpy = randomy1;
+    }
+    else
+    {
+        *dpy = randomy2;
+    }
+
     while (!exitFlag)
     {
         enemy_move(&enemyInstance, *dpx, *dpy, *px, *py);
