@@ -41,6 +41,8 @@ int by = 500;
 int* bpy = &bx;//子弹的实时位置y
 int* bpx = &by;//子弹的实时位置x
 int* bullet_active = &bx;//子弹是否激活
+int hit_frame = 10;//伤害显示的总帧数
+int hit = 0;//子弹是否击中,是否显示伤害
 //敌人
 int ex = 0;
 int ey = 0;
@@ -702,6 +704,21 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
                 transparentimage3(NULL, *dpx, *dpy, &enemyimg);
             }
         }
+        //加载伤害
+        if (hit == 1 && hit_frame != 0)
+        {
+            settextstyle(40, 0, "黑体");
+            settextcolor(YELLOW);
+            outtextxy(*dpx + 100, *dpy + 100, "10");
+            settextstyle(25, 0, "黑体");
+            settextcolor(WHITE);
+            hit_frame--;
+        }
+        if (hit_frame == 0)
+        {
+            hit = 0;
+            hit_frame = 10;
+        }
         //加载当前帧图像
         loadimage(&img, frames[i]);   
         transparentimage3(NULL, *px, *py, &img);
@@ -981,6 +998,7 @@ void updateEnemy(enemy* enemy) {
             printf("%d\n",enemy->health);
             enemy->health -=10;
             *bullet_active = 0;
+            hit = 1;
 		    //outtextxy(*dpx+100, *dpy+100, "10");
             //Sleep(1000);
 			//计算敌人死亡动画
