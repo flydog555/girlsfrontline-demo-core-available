@@ -9,9 +9,9 @@
 #pragma comment( lib, "MSIMG32.LIB")
 #pragma comment(lib,"winmm.lib")
 
-#define BULLET_SPEED 20 // 子弹速度
+#define BULLET_SPEED 10 // 子弹速度
 #define ENEMY_SPEED 2 // 敌人速度
-#define MAX_BULLETS 10
+#define MAX_BULLETS 7
 
 //人物位置
 int x = 640-170;
@@ -717,6 +717,7 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
             settextstyle(40, 0, "黑体");
             settextcolor(YELLOW);
             outtextxy(*dpx + 100, *dpy + 100, "10");
+            
             settextstyle(25, 0, "黑体");
             settextcolor(WHITE);
             hit_frame--;
@@ -726,7 +727,7 @@ void playAnimation(const char* frames[], int frameCount,int a)  //主渲染函数
             hit = 0;
             hit_frame = 10;
         }
-        //加载当前帧图像
+        //加载当前人物帧图像
         loadimage(&img, frames[i]);   
         transparentimage3(NULL, *px, *py, &img);
         EndBatchDraw();
@@ -917,17 +918,8 @@ void updateBullet(Bullet* bullet) {
         // 如果子弹到达目标位置，停用子弹  
         if (distance < BULLET_SPEED) {
             bullet->active = 0;
-            return;
-        }
-        
-        for (int i = 0; i < MAX_BULLETS; i++)
-        {
-            
-        }
-
-        if (*bullet_active==0)   /////////////////////
-        {
-            bullet->active = 0;
+            bullet->x = -500;
+            bullet->y = -500;
             return;
         }
         // 更新子弹位置  
@@ -937,7 +929,6 @@ void updateBullet(Bullet* bullet) {
 }
 
 void fire() { 
-    //Bullet bulletInstance = { 0 };
     while (!exitFlag)
     {
         // 检测鼠标左键发射子弹  
@@ -948,21 +939,13 @@ void fire() {
                 if (!bullets[i].active) // 只有在子弹未激活时才能发射
                 {
                     fire_move(&bullets[i], *px + 170, *py + 170, *pmx, *pmy);
-                    break;
+                    
+                    break;  //是否单发发射
                 }
+                
             }
+           
         }
-        // 更新子弹位置
-        
-        
-        /**bullet_active = bulletInstance.active;
-        *bpx = bulletInstance.x;
-        *bpy = bulletInstance.y;*/
-
-        /*if (!bulletInstance.active)
-        {
-            break;
-        }*/
         Sleep(200);
     }
 }
@@ -971,7 +954,6 @@ void fire_rander()
 {
     for (int i = 0; i < MAX_BULLETS; i++)
     {
-        printf("%d\n", i);
         updateBullet(&bullets[i]); 
     }
     Sleep(1);
@@ -1018,13 +1000,15 @@ void updateEnemy(enemy* enemy) {
             return;
         }
 
-
+        //子弹击中敌人
         for (int i = 0; i < MAX_BULLETS; i++)
         {
-            if (bullets[i].x >= *dpx && bullets[i].x <= *dpx + 340 && bullets[i].y >= *dpy && bullets[i].y <= *dpy + 340)
+            if (bullets[i].x >= *dpx+50 && bullets[i].x <= *dpx + 300 && bullets[i].y >= *dpy+50 && bullets[i].y <= *dpy + 300)
             {
                 enemy->health -= 10;
                 bullets[i].active = 0;
+                bullets[i].x = -500;
+                bullets[i].y = -500;
                 hit = 1;
                 //计算敌人死亡动画
                 if (enemy->health == 0)
@@ -1072,6 +1056,8 @@ void enemy_data()
     enemy enemyInstance = { 0 };
     enemyInstance.health = 50;
     //敌人生成位置随机
+    *dpx = 0;
+    *dpy = 0;
     int randomx1=rand()%101;
     int randomx2=rand()%101+840;
     int randomchoosex=rand()%2;
@@ -1094,7 +1080,6 @@ void enemy_data()
     {
         *dpy = randomy2;
     }
-
     while (!exitFlag)
     {
         enemy_move(&enemyInstance, *dpx, *dpy, *px, *py);
