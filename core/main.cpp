@@ -40,7 +40,6 @@ volatile int i = 0;
 int main()
 {
 	initgraph(1280, 720);
-	//setwritemode(R2_COPYPEN); // 设置画笔模式为异或模式
 
 	/* 创建线程 */
 	h1 = (HANDLE)_beginthread(Thread1, 0, NULL);//线程1
@@ -73,18 +72,6 @@ void Thread1(void* arg)  //线程1：渲染线程
 	{
 		character_move();
 	}
-	////窗口显示网格表
-	//while (1)
-	//{
-	//	for (int i = 0; i <= 36; i++)
-	//	{
-	//		line(0, 20 * i, 1280, 20 * i);
-	//	}
-	//	for (int i = 0; i <= 64; i++)
-	//	{
-	//		line(20 * i, 0, 20 * i, 720);
-	//	}
-	//}
 	
 }
 
@@ -113,7 +100,7 @@ void Thread4(void* arg)  //线程4：子弹数据处理线程
 	}
 }
 
-void Thread5(void* arg)
+void Thread5(void* arg)  //线程5：子弹渲染线程
 {
 	while (!exitFlag)
 	{
@@ -121,7 +108,7 @@ void Thread5(void* arg)
 	}
 }
 
-void Thread6(void* arg)  //线程5：敌人数据处理线程
+void Thread6(void* arg)  //线程6：敌人数据处理线程
 {
 	while (!exitFlag)
 	{
@@ -129,7 +116,7 @@ void Thread6(void* arg)  //线程5：敌人数据处理线程
 	}
 }
 
-void Thread7(void* arg)  //线程6：敌人动画处理线程
+void Thread7(void* arg)  //线程7：敌人动画处理线程
 {
 	while (!exitFlag)
 	{

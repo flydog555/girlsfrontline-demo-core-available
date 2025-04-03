@@ -868,7 +868,6 @@ void drawProgressBar(int x, int y, int progress, int total)
     solidrectangle(x, y, x + filledWidth, y + barHeight); // 绘制进度条 
     // 设置进度条的背景颜色  
     setlinecolor(WHITE);
-    //setfillcolor();
     setlinestyle(PS_SOLID | PS_ENDCAP_FLAT, 3);
     rectangle(x, y, x + barWidth, y + barHeight); // 绘制背景框  
 }
